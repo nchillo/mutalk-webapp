@@ -3,7 +3,6 @@ Class {
 	#superclass : #WAPainter,
 	#instVars : [
 		'runSelectedTestsButton',
-		'runProfiledButton',
 		'exportResultButton'
 	],
 	#category : #'MuTalk-Web-Webviews'
@@ -14,8 +13,7 @@ MutalkRunnerToolbar >> initialize [
 
 	super initialize.
 	self
-		initializeRunSelectedTestsButton;
-		initializeRunProfiledButton;
+		initializeRunMutationButton;
 		initializeExportResultButton
 ]
 
@@ -23,21 +21,26 @@ MutalkRunnerToolbar >> initialize [
 MutalkRunnerToolbar >> initializeExportResultButton [
 
 	exportResultButton := FileDownloadAnchorWebView
-		labeled: (self label: 'Download' prependedBy: Glyphicons cloudDownload)
-		applying: [ :button | button addClass bootstrap button + button addClass bootstrap buttonDefault + button addClass bootstrap pullRight ]
-		obtainingFileUsing: [ WAMimeDocument on: (String streamContents: [ :stream | self session applicationContext currentTestResult fileOutOn: stream ]) mimeType: WAMimeType textPlain fileName: 'test-results.txt' ]
+		labeled: ( self label: 'Download' prependedBy: Glyphicons cloudDownload )
+		applying: [ :button | 
+			button addClass bootstrap button + button addClass bootstrap buttonDefault
+				+ button addClass bootstrap pullRight
+			]
+		obtainingFileUsing: [ WAMimeDocument
+				on:
+					( String
+						streamContents: [ :stream | self session applicationContext currentMutationResult fileOutOn: stream ] )
+				mimeType: WAMimeType textPlain
+				fileName: 'test-results.txt'
+			]
 ]
 
 { #category : #initialization }
-MutalkRunnerToolbar >> initializeRunProfiledButton [
+MutalkRunnerToolbar >> initializeRunMutationButton [
 
-	runProfiledButton := self componentSupplier asynchronicButtonLabeled: (self label: 'Run Profiled' prependedBy: Glyphicons stats) applying: [ :button | button addClass bootstrap buttonDefault ]
-]
-
-{ #category : #initialization }
-MutalkRunnerToolbar >> initializeRunSelectedTestsButton [
-
-	runSelectedTestsButton := self componentSupplier asynchronicButtonLabeled: (self label: 'Run Selected' prependedBy: Glyphicons play) applying: [ :button | button addClass bootstrap buttonDefault ]
+	runSelectedTestsButton := self componentSupplier
+		asynchronicButtonLabeled: ( self label: 'Run Mutation Analysis' prependedBy: Glyphicons play )
+		applying: [ :button | button addClass bootstrap buttonDefault ]
 ]
 
 { #category : #private }
@@ -45,15 +48,10 @@ MutalkRunnerToolbar >> label: aText prependedBy: anIconClass [
 
 	^ [ :canvas | 
 	canvas
-		render: (BootstrapIconWebView representing: anIconClass);
+		render: ( BootstrapIconWebView representing: anIconClass );
 		space;
-		render: aText ]
-]
-
-{ #category : #Interaction }
-MutalkRunnerToolbar >> onRunProfiledTrigger [
-
-	^ runProfiledButton onTrigger
+		render: aText
+	]
 ]
 
 { #category : #Interaction }
@@ -69,8 +67,7 @@ MutalkRunnerToolbar >> renderContentOn: html [
 		with: [ 
 			html div
 				with: [ html
-						render: runSelectedTestsButton;
-						render: runProfiledButton ]
+						render: runSelectedTestsButton]
 				applying: [ :div | div addClass bootstrap buttonGroup ].
 			html render: exportResultButton ]
 		applying: [ :div | div addClass bootstrap buttonToolbar ].

@@ -60,7 +60,7 @@ MutalkWebRunner >> initializeContainerView [
 
 	| testResult |
 
-	testResult := IdentifiedWebView forDivNamed: 'test-result' containing: WPTestRunnerTestResultWebView new.
+	testResult := IdentifiedWebView forDivNamed: 'test-result' containing: MutalkResultWebView new.
 	contentView := GenericContainerWebView
 		wrapping:
 			(self componentSupplier gridBuilder
@@ -90,20 +90,12 @@ MutalkWebRunner >> toolbarRenderingOnAction: testResult [
 
 	| toolbar |
 
-	toolbar := WPTestRunnerToolbar new.
+	toolbar := MutalkRunnerToolbar new.
 
 	toolbar onRunSelectedTestsTrigger
 		transform: testResult into: SpinKitTripleBounce new;
-		evaluate: [ self session applicationContext runTests ];
+		evaluate: [ self session applicationContext runMutationAnalysis ];
 		render: testResult.
-
-	toolbar onRunProfiledTrigger
-		transform: testResult into: SpinKitRotatingPlane new;
-		determineBehaviorByEvaluating: [ :response | 
-			self session applicationContext runTestsProfiled.
-			response onReturn
-				open: WPTestRunnerMessageTallyDialog new;
-				render: testResult ].
 
 	^ toolbar
 ]

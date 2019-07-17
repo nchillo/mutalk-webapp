@@ -2,12 +2,11 @@ Class {
 	#name : #MutalkWebRunnerApplicationContext,
 	#superclass : #GRObject,
 	#instVars : [
-		'currentTestResult',
 		'selectedTestCaseClasses',
 		'selectedPackageCategories',
-		'messageTallyOptional',
 		'selectedModelPackageCategories',
-		'selectedModelClasses'
+		'selectedModelClasses',
+		'currentMutationResult'
 	],
 	#category : #'MuTalk-Web-Application'
 }
@@ -20,8 +19,7 @@ MutalkWebRunnerApplicationContext >> availableModelClasses [
 	items := selectedModelPackageCategories
 		flatCollect: [ :category | 
 			( ( Smalltalk organization listAtCategoryNamed: category )
-				collect: [ :each | Smalltalk globals at: each ] )
-				select: [ :each | true ]
+				collect: [ :each | Smalltalk globals at: each ] ) reject: [ :each | each inheritsFrom: TestCase ]
 			].
 	^ items asSet sorted: [ :a :b | a name <= b name ]
 ]
@@ -33,9 +31,11 @@ MutalkWebRunnerApplicationContext >> availablePackageCategoriesForModel [
 
 	visible := Set new.
 	Object
-		withAllSubclassesDo:
-			[ :each | each category ifNotNil: [ :category | visible add: category ] ].
-	^ visible asOrderedCollection sort: [ :a :b | a  < b  ]
+		withAllSubclassesDo: [ :each | 
+			( ( each inheritsFrom: TestCase ) not and: [ each category isNotNil ] )
+				ifTrue: [ visible add: each category ]
+			].
+	^ visible asOrderedCollection sort: [ :a :b | a < b ]
 ]
 
 { #category : #Querying }
@@ -64,58 +64,40 @@ MutalkWebRunnerApplicationContext >> availableTestCaseClasses [
 ]
 
 { #category : #Accessing }
-MutalkWebRunnerApplicationContext >> currentTestResult [
+MutalkWebRunnerApplicationContext >> currentMutationResult [
 
-	^ currentTestResult
+	^ currentMutationResult
 ]
 
 { #category : #initialization }
 MutalkWebRunnerApplicationContext >> initialize [
 
 	super initialize.
-	self resetTestResult.
+	self resetMutationResult.
 	selectedTestCaseClasses := #().
 	selectedPackageCategories := #().
 	selectedModelClasses := #().
-	selectedModelPackageCategories := #().
-	messageTallyOptional := Optional unused
+	selectedModelPackageCategories := #()
 ]
 
 { #category : #initialization }
-MutalkWebRunnerApplicationContext >> resetTestResult [
+MutalkWebRunnerApplicationContext >> resetMutationResult [
 
-	currentTestResult := TestAsserter classForTestResult new
-]
-
-{ #category : #private }
-MutalkWebRunnerApplicationContext >> runTestSuites: testSuites [
-
-	CurrentExecutionEnvironment runTestsBy: [ testSuites do: [ :suite | suite run: currentTestResult ] ]
+	currentMutationResult := MutationTestingGeneralResult empty
 ]
 
 { #category : #Actions }
-MutalkWebRunnerApplicationContext >> runTests [
+MutalkWebRunnerApplicationContext >> runMutationAnalysis [
 
-	self
-		resetTestResult;
-		runTestSuites: (selectedTestCaseClasses select: [ :class | class isAbstract not ] thenCollect: [ :class | class suite ])
-]
+	| analysis |
 
-{ #category : #Actions }
-MutalkWebRunnerApplicationContext >> runTestsProfiled [
-
-	| messageTally |
-
-	messageTally := MessageTally
-		spyOn: [ self runTests ]
-		reportOtherProcesses: false
-		cutoff: 1
-		openResultWindow: false
-		closeAfter: false.
-
-	messageTallyOptional := (messageTally tally strictlyPositive and: [ messageTally time strictlyPositive ])
-		ifTrue: [ Optional containing: messageTally ]
-		ifFalse: [ Optional unused ]
+	analysis := MutationTestingAnalysis
+		testCasesFrom: selectedTestCaseClasses
+		mutating: selectedModelClasses
+		using: MutantOperator contents
+		with: AllTestsMethodsRunningMutantEvaluationStrategy new.
+	analysis run.
+	currentMutationResult := analysis generalResult
 ]
 
 { #category : #'State Tracking' }
@@ -140,10 +122,4 @@ MutalkWebRunnerApplicationContext >> setSelectedPackageCategoriesTo: categories 
 MutalkWebRunnerApplicationContext >> setSelectedTestCaseClassesTo: testCaseClasses [
 
 	selectedTestCaseClasses := testCaseClasses
-]
-
-{ #category : #Accessing }
-MutalkWebRunnerApplicationContext >> withMessageTallyDo: aFoundBlock ifNone: aNoneBlock [
-
-	messageTallyOptional withContentDo: aFoundBlock ifUnused: aNoneBlock
 ]
