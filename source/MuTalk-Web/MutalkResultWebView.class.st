@@ -5,18 +5,6 @@ Class {
 }
 
 { #category : #rendering }
-MutalkResultWebView >> detailsLinkShowing: testResult [
-
-	| showDetailsAnchor |
-
-	showDetailsAnchor := self componentSupplier
-		asynchronicLinkActingAsButtonLabeled: 'See the details here.'
-		applying: [ :anchor | anchor addClass bootstrap alertLink ].
-	showDetailsAnchor onTrigger open: (WPTestRunnerTestResultDetailsDialog for: testResult).
-	^ showDetailsAnchor
-]
-
-{ #category : #rendering }
 MutalkResultWebView >> renderContentOn: html [
 
 	| notificationBuilder testResult score|
@@ -28,7 +16,12 @@ MutalkResultWebView >> renderContentOn: html [
 		success;
 		wrapping: [ :canvas | 
 			canvas
-				render: testResult].
+				render: testResult;
+				space;
+				break;
+				render: (BootstrapIconWebView representing: Glyphicons time);
+				strong: ' Elapsed time: ';
+				render: testResult elapsedTime printString].
 
 	score isAlmostAcceptableScore
 		ifTrue: [ notificationBuilder warning ].

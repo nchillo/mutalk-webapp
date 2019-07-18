@@ -29,7 +29,7 @@ MutalkRunnerToolbar >> initializeExportResultButton [
 		obtainingFileUsing: [ WAMimeDocument
 				on:
 					( String
-						streamContents: [ :stream | self session applicationContext currentMutationResult fileOutOn: stream ] )
+						streamContents: [ :stream | stream nextPutAll: (MutationTestingGeneralResultReporter for: self session applicationContext currentMutationResult) value] )
 				mimeType: WAMimeType textPlain
 				fileName: 'test-results.txt'
 			]
