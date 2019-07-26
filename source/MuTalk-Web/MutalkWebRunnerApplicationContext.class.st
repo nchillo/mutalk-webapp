@@ -94,8 +94,7 @@ MutalkWebRunnerApplicationContext >> runMutationAnalysis [
 	analysis := MutationTestingAnalysis
 		testCasesFrom: selectedTestCaseClasses
 		mutating: selectedModelClasses
-		using: MutantOperator contents
-		with: AllTestsMethodsRunningMutantEvaluationStrategy new.
+		using: MutationTestingConfiguration default.
 	analysis run.
 	currentMutationResult := analysis generalResult
 ]
