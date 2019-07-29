@@ -95,8 +95,7 @@ MutalkWebRunnerApplicationContext >> runMutationAnalysis [
 		testCasesFrom: selectedTestCaseClasses
 		mutating: selectedModelClasses
 		using: MutationTestingConfiguration default.
-	analysis run.
-	currentMutationResult := analysis generalResult
+	currentMutationResult := analysis run
 ]
 
 { #category : #'State Tracking' }
