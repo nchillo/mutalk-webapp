@@ -23,13 +23,19 @@ MutalkRunnerToolbar >> initializeExportResultButton [
 	exportResultButton := FileDownloadAnchorWebView
 		labeled: ( self label: 'Download' prependedBy: Glyphicons cloudDownload )
 		applying: [ :button | 
-			button addClass bootstrap button + button addClass bootstrap buttonDefault
+			button addClass bootstrap button
+				+ button addClass bootstrap buttonDefault
 				+ button addClass bootstrap pullRight
 			]
 		obtainingFileUsing: [ WAMimeDocument
 				on:
 					( String
-						streamContents: [ :stream | stream nextPutAll: (MutationTestingGeneralResultReporter for: self session applicationContext currentMutationResult) value] )
+						streamContents: [ :stream | 
+							stream
+								nextPutAll:
+									( NeoJSONWriter
+										toString: self session applicationContext currentMutationResult )
+							] )
 				mimeType: WAMimeType textPlain
 				fileName: 'test-results.txt'
 			]
